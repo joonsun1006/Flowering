@@ -17,6 +17,7 @@ const StyledP = styled.p`
 const SignupForm = () => {
   const [isAuthCode, setIsAuthCode] = useState(false);
   const [authCorrect, setAuthCorrect] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
   const navigate = useNavigate();
   const [userEmail, setUserEmail] = useState("");
   const baseurl = import.meta.env.VITE_APP_BASE_URL;
@@ -62,19 +63,41 @@ const SignupForm = () => {
     }
   };
 
-  const handleAuthChange = async (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-    try {
-      await axios.post(`${baseurl}email/confirm`, {
-        email: formData.signupEmail,
-        code: e.target.value,
-      });
-      setAuthCorrect(true);
-      setUserEmail(formData.signupEmail);
-    } catch (error) {
-      setAuthCorrect(false);
+  useEffect(() => {
+    const handleAuthChange = async (e) => {
+      setFormData({ ...formData, [e.target.id]: e.target.value });
+      try {
+        await axios.post(`${baseurl}email/confirm`, {
+          email: formData.signupEmail,
+          code: e.target.value,
+        })
+        setAuthCorrect(true);
+        setUserEmail(formData.signupEmail);
+      } catch (error) {
+        setAuthCorrect(false);
+      }
     }
-  };
+    const timer = setTimeout(() => {
+      handleAuthChange();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+
+  }, [codeInput])
+
+  // const handleAuthChange = async (e) => {
+  //   setFormData({ ...formData, [e.target.id]: e.target.value });
+  //   try {
+  //     await axios.post(`${baseurl}email/confirm`, {
+  //       email: formData.signupEmail,
+  //       code: e.target.value,
+  //     });
+  //     setAuthCorrect(true);
+  //     setUserEmail(formData.signupEmail);
+  //   } catch (error) {
+  //     setAuthCorrect(false);
+  //   }
+  // };
 
   useEffect(() => {
     setUserEmail(formData.signupEmail);
@@ -101,7 +124,7 @@ const SignupForm = () => {
       {/* 위에 있는 인증 요청 버튼을 누른 순간 생성됨 */}
       {isAuthCode && (
         <>
-          <Input htmlFor="authNumber" id="authNumber" placeholder="인증번호" value={formData.authNumber} onChange={handleAuthChange} disabled={authCorrect} />
+          <Input htmlFor="authNumber" id="authNumber" placeholder="인증번호" value={formData.authNumber} onChange={() => setCodeInput((value) => value)} disabled={authCorrect} />
           {!authCorrect && <p>✓ 인증 번호가 같아요</p>}
           {authCorrect && <StyledP>✓ 인증 번호가 같아요</StyledP>}
           <NotAuthNumber>인증번호가 오지 않아요.</NotAuthNumber>
